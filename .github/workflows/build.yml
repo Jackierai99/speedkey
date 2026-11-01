@@ -1,15 +1,21 @@
 name: Build APK
-on: { push: { branches: [main] }, workflow_dispatch: {} }
+on: [push, workflow_dispatch]
 jobs:
   build:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
-      - run: unzip -o SpeedKey.zip
+      - run: unzip -o SpeedKey.zip -d project
       - uses: actions/setup-java@v4
         with: { distribution: temurin, java-version: 17 }
       - uses: gradle/actions/setup-gradle@v4
-        with: { gradle-version: 8.9 }
-      - run: cd SpeedKey && gradle assembleDebug --no-daemon
+        with: { gradle-version: 8.7 }
+      - name: Build
+        run: |
+          DIR=$(dirname "$(find project -name settings.gradle* | head -n1)")
+          echo "Project folder: $DIR"
+          cd "$DIR" && gradle assembleDebug --no-daemon
       - uses: actions/upload-artifact@v4
-        with: { name: SpeedKey-APK, path: SpeedKey/app/build/outputs/apk/debug/app-debug.apk }
+        with:
+          name: SpeedKey-apk
+          path: project/**/build/outputs/apk/debug/*.apk
